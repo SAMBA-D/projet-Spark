@@ -1,0 +1,63 @@
+services:
+  hadoop-master:
+    image: SAMBA-hadoop/cluster:1.0
+    container_name: hadoop-master
+    hostname: hadoop-master
+    ports:
+      - "9870:9870"
+      - "8089:8088"  
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    command: ["/bin/bash", "-c", "/usr/sbin/sshd && sleep 5 && export HDFS_NAMENODE_USER=root HDFS_DATANODE_USER=root HDFS_SECONDARYNAMENODE_USER=root YARN_RESOURCEMANAGER_USER=root YARN_NODEMANAGER_USER=root && /usr/local/hadoop/sbin/start-dfs.sh && /usr/local/hadoop/sbin/start-yarn.sh && tail -f /dev/null"]
+    networks:
+      - hadoop
+    extra_hosts:
+      - "hadoop-slave1:172.19.0.3"
+      - "hadoop-slave2:172.19.0.4"
+
+  hadoop-slave1:
+    image: SAMBA-hadoop/cluster:1.0
+    container_name: hadoop-slave1
+    hostname: hadoop-slave1
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    command: ["/bin/bash", "-c", "/usr/sbin/sshd && sleep 5 && export HDFS_NAMENODE_USER=root HDFS_DATANODE_USER=root HDFS_SECONDARYNAMENODE_USER=root YARN_RESOURCEMANAGER_USER=root YARN_NODEMANAGER_USER=root && /usr/local/hadoop/sbin/start-dfs.sh && /usr/local/hadoop/sbin/start-yarn.sh && tail -f /dev/null"]
+    networks:
+      - hadoop
+    depends_on:
+      - hadoop-master
+    extra_hosts:
+      - "hadoop-master:172.19.0.2"
+      - "hadoop-slave2:172.19.0.4"
+
+  hadoop-slave2:
+    image: SAMBA-hadoop/cluster:1.0
+    container_name: hadoop-slave2
+    hostname: hadoop-slave2
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USER=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+      - YARN_RESOURCEMANAGER_USER=root
+      - YARN_NODEMANAGER_USER=root
+    command: ["/bin/bash", "-c", "/usr/sbin/sshd && sleep 5 && export HDFS_NAMENODE_USER=root HDFS_DATANODE_USER=root HDFS_SECONDARYNAMENODE_USER=root YARN_RESOURCEMANAGER_USER=root YARN_NODEMANAGER_USER=root && /usr/local/hadoop/sbin/start-dfs.sh && /usr/local/hadoop/sbin/start-yarn.sh && tail -f /dev/null"]
+    networks:
+      - hadoop
+    depends_on:
+      - hadoop-master
+    extra_hosts:
+      - "hadoop-master:172.19.0.2"
+      - "hadoop-slave1:172.19.0.3"
+
+networks:
+  hadoop:
+    external: true
+    name: hadoop
